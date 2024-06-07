@@ -1,5 +1,6 @@
 package io.github.aratakileo.quickharvest;
 
+import io.github.aratakileo.quickharvest.util.HoeUtil;
 import io.papermc.paper.event.block.BlockPreDispenseEvent;
 import org.bukkit.Material;
 import org.bukkit.Particle;
@@ -14,6 +15,7 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.Damageable;
 import org.jetbrains.annotations.NotNull;
 import io.github.aratakileo.quickharvest.util.DropItemUtil;
 import io.github.aratakileo.quickharvest.util.SoundUtil;
@@ -29,25 +31,24 @@ public class EventListener implements Listener {
 
         Block block = e.getClickedBlock();
         String blockKey = block.getType().getKey().asString();
+
+        if (!config.getStringList("targets").contains(blockKey)) return;
+
         ItemStack itemInHandStack = e.getItem();
+        if (itemInHandStack == null) return;
+
         String itemInHandKey = e.getMaterial().getKey().asString();
 
-        if (
-                !config.getConfigurationSection("reason").getKeys(false).contains(itemInHandKey)
-                        || !blockKey.equals(config.getString("reason." + itemInHandKey + ".target"))
-        ) return;
+        if (!itemInHandKey.endsWith("_hoe")) return;
 
-        Ageable ageable = (Ageable)block.getBlockData();
+        Ageable ageable = (Ageable) block.getBlockData();
 
         if (ageable.getAge() != ageable.getMaximumAge()) return;
 
         if (config.getString("feature.player").equals("vanilla")) {
-            block.getDrops().forEach(itemStack -> {
-                if (itemInHandStack.getType() == itemStack.getType()) itemStack.setAmount(itemStack.getAmount() - 1);
-                if (itemStack.getAmount() == 0) return;
+            block.getDrops().forEach(itemStack -> DropItemUtil.drop(block, itemStack));
 
-                DropItemUtil.drop(block, itemStack);
-            });
+            HoeUtil.damage(e.getPlayer(), itemInHandStack, 1);
 
             SoundUtil.playSound(block, config.getString("sound"));
             ageable.setAge(0);
@@ -107,28 +108,26 @@ public class EventListener implements Listener {
 
         ItemStack itemInHandStack = e.getItemStack();
         String itemInHandKey = itemInHandStack.getType().getKey().asString();
-
-        if (!config.getConfigurationSection("reason").getKeys(false).contains(itemInHandKey)) return;
+        if (!itemInHandKey.endsWith("_hoe")) return;
 
         Block cropBlock = dispenser.getRelative(((Directional) dispenser.getBlockData()).getFacing());
 
         if (
-                !cropBlock.getType()
-                        .getKey()
-                        .asString()
-                        .equals(config.getString("reason." + itemInHandKey + ".target"))
+                !config.getStringList("targets").contains(
+                        cropBlock
+                                .getType()
+                                .getKey()
+                                .asString()
+                )
         ) return;
 
         Ageable ageable = (Ageable) cropBlock.getBlockData();
 
         if (ageable.getMaximumAge() != ageable.getAge()) return;
 
-        cropBlock.getDrops().forEach(itemStack -> {
-            if (itemStack.getType() == itemInHandStack.getType()) itemStack.setAmount(itemStack.getAmount() - 1);
-            if (itemStack.getAmount() == 0) return;
+        cropBlock.getDrops().forEach(itemStack -> DropItemUtil.drop(cropBlock, itemStack));
 
-            DropItemUtil.drop(cropBlock, itemStack);
-        });
+        HoeUtil.damage(null, itemInHandStack, 1);
 
         dispenser.getWorld().spawnParticle(Particle.SMOKE_NORMAL, cropBlock.getLocation(), 100);
 

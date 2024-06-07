@@ -1,28 +1,23 @@
-sound: minecraft:block.composter.ready  # played sound when quick harvest
+sound: minecraft:block.composter.ready
+# played sound when quick harvest
 
 feature:
-  player: default                       # quick harvest by right-click:
-                                        #   default - harvested items will automatically transfer to inventory
-                                        #   vanilla - harvested items will just drop on the ground
-                                        #   disabled - completely disable this feature
+  player: vanilla
+  # quick harvest by right-click:
+  #   default - harvested items will automatically transfer to inventory
+  #   vanilla - harvested items will just drop on the ground
+  #   disabled - completely disable this feature
 
-  dispenser: yes                        # quick harvest by dispenser (yes/no)
+  dispenser: yes
+  # quick harvest by dispenser (yes/no)
 
-reason:
-  minecraft:wheat_seeds:                # item in hand
-    target: minecraft:wheat             # harvest block (works when harvest age equals max age)
+  hoe-dura-cost: yes
+  # does harvesting consume the durability of the hoe (yes/no)
 
-  minecraft:beetroot_seeds:
-    target: minecraft:beetroots
-
-  minecraft:potato:
-    target: minecraft:potatoes
-
-  minecraft:carrot:
-    target: minecraft:carrots
-
-  minecraft:nether_wart:
-    target: minecraft:nether_wart
-
-  minecraft:cocoa_beans:
-    target: minecraft:cocoa
+targets:
+  - minecraft:wheat
+  - minecraft:beetroots
+  - minecraft:potatoes
+  - minecraft:carrots
+  - minecraft:nether_wart
+  - minecraft:cocoa
